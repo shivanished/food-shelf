@@ -1,0 +1,105 @@
+//
+//  ContentView.swift
+//  FoodShelf
+//
+//  Created by Shivansh Soni on 11/29/21.
+//
+
+import SwiftUI
+import CoreML
+import Vision
+
+struct ContentView: View {
+    
+    @State private var popUpSheet: Bool = false
+    @State private var showPhotoSelector: Bool = false
+    @State private var sourceType: UIImagePickerController.SourceType = .camera
+    @State private var picture: UIImage?
+    @State private var outputLabel: String = ""
+    
+    private let classifier = VisionClassifier(mlModel: FoodClassifier_1().model)
+    
+    var body: some View {
+        
+        NavigationView {
+
+            VStack {
+                Image(uiImage: picture ?? UIImage(named: "placeholder")!)
+                    .resizable()
+                    .frame(width: 350, height: 400)
+                
+                Button("Choose Picture") {
+                    self.popUpSheet = true
+                }.padding()
+                    .buttonStyle(BlueButton())
+                    .actionSheet(isPresented: $popUpSheet) {
+                        ActionSheet(title: Text("Select Image"), message: Text("Choose"), buttons: [
+                            .default(Text("Pick a Photo")) {
+                                self.showPhotoSelector = true
+                                self.sourceType = .photoLibrary
+                            },
+                            .default(Text("Take a Picture")) {
+                                self.showPhotoSelector = true
+                                self.sourceType = .camera
+                            },
+                            .cancel()
+                        ])
+                    }
+                
+                Text(outputLabel)
+                    .font(.title)
+                    .padding(.top, 80)
+                
+                Button("Classify Image") {
+                    
+                    if let img = self.picture {
+                        
+                        self.classifier?.classify(img){ result in
+                            self.outputLabel = result
+                        }
+                    }
+                    
+                }.padding()
+                    .buttonStyle(AnimatedButton())
+            }
+            
+            
+            .navigationBarTitle("Food Shelf Classifier")
+            
+        }.sheet(isPresented: $showPhotoSelector) {
+            ImagePicker(image: self.$picture, isShown: self.$showPhotoSelector, sourceType: self.sourceType)
+        }
+    }
+}
+
+struct BlueButton: ButtonStyle{
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.body)
+            .padding()
+            .background(Color(red: 0.5, green: 0.4, blue: 0.3))
+            .foregroundColor(.white)
+            .clipShape(Capsule())
+            .scaleEffect(configuration.isPressed ? 1.2: 1)
+            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
+    }
+}
+
+struct AnimatedButton: ButtonStyle{
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.title2)
+            .padding()
+            .background(Color(red: 0.5, green: 0.2, blue: 0.3))
+            .foregroundColor(.white)
+            .clipShape(Capsule())
+            .scaleEffect(configuration.isPressed ? 1.2: 1)
+            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
+    }
+}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
+}
