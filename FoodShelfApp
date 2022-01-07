@@ -1,0 +1,18 @@
+//
+//  FoodShelfApp.swift
+//  FoodShelf
+//
+//  Created by Shivansh Soni on 11/29/21.
+//
+
+import SwiftUI
+
+@main
+struct FoodShelfApp: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+
